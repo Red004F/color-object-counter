@@ -34,24 +34,41 @@ def create_contour(mask): #funzione per creare i contour
             contours_count += 1
     return contours_count
 
+def nothing(x):
+    pass
 
 cv2.namedWindow('image')
 cv2.setMouseCallback('image', color_select)
+
+cv2.namedWindow('slider')
+cv2.resizeWindow('slider', 400, 80)
+cv2.createTrackbar('Lower_hue', 'slider', 0, 179, nothing)
+cv2.createTrackbar('Upper_hue', 'slider', 0, 179, nothing)
 
 while True:
     _, frame = webcam.read()
 
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
+    diff_lower_hue = cv2.getTrackbarPos('Lower_hue', 'slider')
+    diff_upper_hue = cv2.getTrackbarPos('Upper_hue', 'slider')
+
+    lower_hue = 0 \
+        if hue - diff_lower_hue < 0 \
+        else hue - diff_lower_hue
+    upper_hue = hue + diff_upper_hue \
+        if hue + diff_upper_hue < 179 \
+        else 179
     #soglia minima e massima, basata sul colore selezionato
-    lower_hsv = np.array([hue - 10,50,20])
-    upper_hsv = np.array([hue + 10,255,255])
+    lower_hsv = np.array([lower_hue,50,20])
+    upper_hsv = np.array([upper_hue,255,255])
 
     mask = cv2.inRange(hsv, lower_hsv, upper_hsv)
     count = create_contour(mask)
 
     cv2.putText(frame, 'Count: ' + str(count), (10, 20), font, 0.5, (79, 0, 255), 2)
-    cv2.putText(frame, 'Color: '+ str(hue), (10, 40), font, 0.5, (79, 0, 255), 2)
+    cv2.putText(frame, 'Upper: ' + str(upper_hsv), (10, 40), font, 0.5, (79, 0, 255), 2)
+    cv2.putText(frame, 'Lower: ' + str(lower_hsv), (10, 60), font, 0.5, (79, 0, 255), 2)
 
 
 
